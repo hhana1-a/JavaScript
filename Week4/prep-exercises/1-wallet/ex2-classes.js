@@ -3,10 +3,14 @@ import eurosFormatter from './euroFormatter.js';
 class Wallet {
   #name;
   #cash;
+  #dailyAllowance;
+  #dayTotalWithdrawals;
 
-  constructor(name, cash) {
+  constructor(name, cash, dailyAllowance = 40) {
     this.#name = name;
     this.#cash = cash;
+    this.#dailyAllowance = dailyAllowance;
+    this.#dayTotalWithdrawals = 0;
   }
 
   get name() {
@@ -15,6 +19,7 @@ class Wallet {
 
   deposit(amount) {
     this.#cash += amount;
+    this.checkResetDailyAllowance();
   }
 
   withdraw(amount) {
@@ -23,7 +28,13 @@ class Wallet {
       return 0;
     }
 
+    if (this.#dayTotalWithdrawals + amount > this.#dailyAllowance) {
+      console.log(`Exceeds daily withdrawal limit!`);
+      return 0;
+    }
+
     this.#cash -= amount;
+    this.#dayTotalWithdrawals += amount;
     return amount;
   }
 
@@ -34,13 +45,33 @@ class Wallet {
       }`
     );
     const withdrawnAmount = this.withdraw(amount);
-    wallet.deposit(withdrawnAmount);
+    if (withdrawnAmount > 0) {
+      wallet.deposit(withdrawnAmount);
+    }
   }
 
   reportBalance() {
     console.log(
       `Name: ${this.name}, balance: ${eurosFormatter.format(this.#cash)}`
     );
+  }
+
+  resetDailyAllowance() {
+    this.#dayTotalWithdrawals = 0;
+  }
+
+  setDailyAllowance(newAllowance) {
+    this.#dailyAllowance = newAllowance;
+  }
+
+  checkResetDailyAllowance() {
+    if (this.#dayTotalWithdrawals === 0) return;
+    const now = new Date();
+    const lastWithdrawalDate = new Date();
+    lastWithdrawalDate.setTime(now.getTime() - 24 * 60 * 60 * 1000); // 24 hours ago
+    if (lastWithdrawalDate.getDate() !== now.getDate()) {
+      this.resetDailyAllowance();
+    }
   }
 }
 
