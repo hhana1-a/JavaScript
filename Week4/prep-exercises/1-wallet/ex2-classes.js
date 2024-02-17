@@ -11,7 +11,7 @@ class Wallet {
     this.#cash = cash;
     this.#dailyAllowance = dailyAllowance;
     this.#dayTotalWithdrawals = 0;
-  }
+  } 
 
   get name() {
     return this.#name;
